@@ -32,8 +32,6 @@ Demo application containing fullstack solution in pure Golang.
 │
 ├── /scripts                   # Automation scripts (e.g., build, deploy)
 │   ├── build.sh
-│   ├── test.sh
-│   └── deploy.sh
 ├── /docker                    # Docker configuration for backend and frontend
 │   ├── /backend
 │   │   └── Dockerfile
