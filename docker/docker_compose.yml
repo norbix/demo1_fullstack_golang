@@ -1,4 +1,3 @@
----
 version: '3.9'
 
 services:
@@ -11,6 +10,11 @@ services:
             - "8080:8080"
         environment:
             - ENV=production
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
 
     frontend:
         build:
@@ -19,8 +23,6 @@ services:
         container_name: frontend-service
         ports:
             - "3000:3000"
-        depends_on:
-            -   backend
+# TODO: Add depends_on
         environment:
             - ENV=production
-...

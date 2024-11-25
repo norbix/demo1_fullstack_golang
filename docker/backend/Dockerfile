@@ -1,28 +1,33 @@
 # Stage 1: Build
-FROM golang:1.21 AS builder
+FROM golang:1.23 AS builder
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the build script and make it executable
-COPY scripts/build.sh /app/scripts/build.sh
-RUN chmod +x /app/scripts/build.sh
+# Copy only the go.mod and go.sum files first to leverage Docker's layer caching
+COPY ./backend/go.mod ./
+RUN go mod download
 
-# Copy the source code
-COPY . /app
+# Copy the entire backend source code
+COPY ./backend/ ./
 
-# Execute the build script for the backend
-RUN ./scripts/build.sh backend
+# Enable CGO and build the Go application
+ENV CGO_ENABLED=1 GOOS=linux GOARCH=amd64
+# Build the Go application
+RUN go build -o backend ./cmd/api
 
-# Stage 2: Run (distroless)
-FROM gcr.io/distroless/base-debian11 AS runner
+# Stage 2: Run
+# Non-distroless image with the required GLIBC
+FROM debian:bookworm-slim
 
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the backend binary from the build stage
-COPY --from=builder /app/build/backend/main /app/main
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/backend .
 
-# Expose backend port
+# Expose the application port
 EXPOSE 8080
 
-# Use the distroless base entrypoint (no shell available)
-ENTRYPOINT ["/app/main"]
+# Use the distroless base entrypoint
+ENTRYPOINT ["/app/backend"]

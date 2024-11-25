@@ -28,7 +28,7 @@ build_backend() {
 build_frontend() {
     echo "Building frontend WebAssembly..."
     mkdir -p build/frontend
-    GOOS=js GOARCH=wasm go build -o build/frontend/main.wasm ./frontend/cmd/ui/main.go
+    GOOS=js GOARCH=wasm go build -o build/main.wasm ./cmd/ui/main.go
     echo "Frontend build complete!"
 }
 
