@@ -23,3 +23,23 @@ go.work.sum
 
 # env file
 .env
+
+hack/
+
+# Ignore everything in .idea/ by default
+.idea/*
+
+# Allow project-specific files
+!.idea/modules.xml
+!.idea/vcs.xml
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+
+# Exclude user-specific files
+.idea/workspace.xml
+.idea/misc.xml
+.idea/libraries/
+.idea/shelf/
+
+# Ignore IntelliJ cache/output
+out/
