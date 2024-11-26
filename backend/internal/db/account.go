@@ -1,49 +1,105 @@
 package db
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 
+	"github.com/norbix/demo1_fullstack_golang/backend/configs"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
 )
 
-// AccountRepo is an in-memory implementation of AccountService.
+// AccountRepo interacts with the downstream immudb Vault API.
 type AccountRepo struct {
-	accounts map[string]dbmodels.Account
+	config *configs.Config
+	client *http.Client
 }
 
-// NewAccountRepo initializes a new AccountRepo.
-func NewAccountRepo() *AccountRepo {
+// NewAccountRepo initializes the AccountRepo with the given config and HTTP client.
+// If no client is provided, it defaults to http.DefaultClient.
+func NewAccountRepo(config *configs.Config, client *http.Client) *AccountRepo {
+	if client == nil {
+		client = http.DefaultClient
+	}
 	return &AccountRepo{
-		accounts: make(map[string]dbmodels.Account),
+		config: config,
+		client: client,
 	}
 }
 
-// CreateAccount creates a new account and stores it in memory.
+// CreateAccount sends account data to the immudb Vault for storage.
 func (repo *AccountRepo) CreateAccount(account dbmodels.Account) error {
-	// Ensure the account number is unique
-	if _, exists := repo.accounts[account.AccountNumber]; exists {
-		return errors.New("account already exists")
+	url := fmt.Sprintf("%s/document", repo.config.BaseURL)
+	payload, err := json.Marshal(account)
+	if err != nil {
+		return fmt.Errorf("failed to serialize account data: %w", err)
 	}
 
-	repo.accounts[account.AccountNumber] = account
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("X-API-Key", repo.config.APIKey)
+
+	resp, err := repo.client.Do(req) // Use the injected HTTP client
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
 	return nil
 }
 
-// GetAccount retrieves an account by its account number.
+// GetAccount retrieves account data from the immudb Vault by account number.
 func (repo *AccountRepo) GetAccount(accountNumber string) (*dbmodels.Account, error) {
-	account, exists := repo.accounts[accountNumber]
-	if !exists {
+	url := fmt.Sprintf("%s/documents/search", repo.config.BaseURL)
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"account_number": accountNumber,
+		},
+	}
+	payload, err := json.Marshal(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize query: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("X-API-Key", repo.config.APIKey)
+
+	resp, err := repo.client.Do(req) // Use the injected HTTP client
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var response struct {
+		Documents []dbmodels.Account `json:"documents"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	if len(response.Documents) == 0 {
 		return nil, errors.New("account not found")
 	}
 
-	return &account, nil
-}
-
-// ListAccounts retrieves all accounts.
-func (repo *AccountRepo) ListAccounts() ([]dbmodels.Account, error) {
-	var result []dbmodels.Account
-	for _, account := range repo.accounts {
-		result = append(result, account)
-	}
-	return result, nil
+	return &response.Documents[0], nil
 }
