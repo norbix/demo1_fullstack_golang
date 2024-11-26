@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+// ConfigTestSuite defines the test suite for the Config package
 type ConfigTestSuite struct {
 	suite.Suite
 	originalBaseURL string
@@ -106,7 +107,8 @@ func (suite *ConfigTestSuite) TestLoadConfig_MissingAPIKey() {
 	assert.Equal(suite.T(), "missing required environment variables", err.Error())
 }
 
-func (suite *ConfigTestSuite) TestLoadCOnfig_NoEnvVariables() {
+// TestLoadConfig_NoEnvVariables tests LoadConfig function when no environment variables are set
+func (suite *ConfigTestSuite) TestLoadConfig_NoEnvVariables() {
 	// Given: No environment variables are set
 
 	// When: LoadConfig is called
@@ -118,6 +120,7 @@ func (suite *ConfigTestSuite) TestLoadCOnfig_NoEnvVariables() {
 	assert.Equal(suite.T(), "missing required environment variables", err.Error())
 }
 
+// Test Suite Runner
 func TestConfigTestSuite(t *testing.T) {
 	suite.Run(t, new(ConfigTestSuite))
 }
