@@ -6,19 +6,21 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/norbix/demo1_fullstack_golang/backend/configs"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // MockRoundTripper mocks HTTP requests.
 type MockRoundTripper struct {
 	Response *http.Response
 	Err      error
+	Requests []*http.Request
 }
 
 func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	m.Requests = append(m.Requests, req)
 	return m.Response, m.Err
 }
 
@@ -48,7 +50,15 @@ func TestAccountRepo_CreateAccount(t *testing.T) {
 		Type:          dbmodels.Sending,
 	}
 	err := repo.CreateAccount(account)
+
+	// Verify results
 	assert.NoError(t, err, "CreateAccount should not return an error")
+	assert.Len(t, mockTransport.Requests, 1, "One HTTP request should be made")
+
+	// Verify the request method and URL
+	req := mockTransport.Requests[0]
+	assert.Equal(t, "POST", req.Method, "HTTP method should be POST")
+	assert.Equal(t, config.BaseURL+"/document", req.URL.String(), "URL should match the expected endpoint")
 }
 
 func TestAccountRepo_GetAccount(t *testing.T) {
@@ -78,7 +88,21 @@ func TestAccountRepo_GetAccount(t *testing.T) {
 
 	// Test GetAccount
 	account, err := repo.GetAccount("12345")
+
+	// Verify results
 	assert.NoError(t, err, "GetAccount should not return an error")
+	assert.NotNil(t, account, "Account should not be nil")
 	assert.Equal(t, "12345", account.AccountNumber, "AccountNumber should match")
 	assert.Equal(t, "John Doe", account.AccountName, "AccountName should match")
+	assert.Len(t, mockTransport.Requests, 1, "One HTTP request should be made")
+
+	// Verify the request method, URL, and payload
+	req := mockTransport.Requests[0]
+	assert.Equal(t, "POST", req.Method, "HTTP method should be POST")
+	assert.Equal(t, config.BaseURL+"/documents/search", req.URL.String(), "URL should match the expected endpoint")
+
+	// Verify the request body
+	expectedBody := `{"query":{"account_number":"12345"}}`
+	body, _ := ioutil.ReadAll(req.Body)
+	assert.JSONEq(t, expectedBody, string(body), "Request body should match expected JSON")
 }
