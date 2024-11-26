@@ -11,9 +11,6 @@ type AccountService interface {
 
 	// GetAccount retrieves an account by its account number.
 	GetAccount(accountNumber string) (*dbmodels.Account, error)
-
-	// ListAccounts retrieves all accounts.
-	ListAccounts() ([]dbmodels.Account, error)
 }
 
 // DBService provides an implementation of AccountService.
