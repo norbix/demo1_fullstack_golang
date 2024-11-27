@@ -10,7 +10,7 @@ import (
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/handlers"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/services"
 
-	"github.com/gorilla/mux" // Router library
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -30,8 +30,8 @@ func main() {
 
 	// Register endpoints
 	router.HandleFunc("/healthz", healthHandler).Methods("GET")
-	router.HandleFunc("/accounts", accountHandler.CreateAccount).Methods("POST")
-	router.HandleFunc("/accounts/retrieve", accountHandler.GetAccount).Methods("POST")
+	router.HandleFunc("/accounts", accountHandler.CreateAccount).Methods("PUT")
+	router.HandleFunc("/accounts/retrieve", accountHandler.GetAccounts).Methods("POST")
 
 	// Start the server
 	fmt.Println("Starting Backend Component on port 8080...")

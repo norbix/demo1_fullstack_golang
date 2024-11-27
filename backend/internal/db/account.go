@@ -3,8 +3,9 @@ package db
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/norbix/demo1_fullstack_golang/backend/configs"
@@ -29,155 +30,105 @@ func NewAccountRepo(config *configs.Config, client *http.Client) *AccountRepo {
 	}
 }
 
-//
-// // CreateAccount sends account data to the immudb Vault for storage.
-// func (repo *AccountRepo) CreateAccount(account dbmodels.Account) error {
-// 	url := fmt.Sprintf("%s/document", repo.config.BaseURL)
-// 	payload, err := json.Marshal(account)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to serialize account data: %w", err)
-// 	}
-//
-// 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
-// 	if err != nil {
-// 		return fmt.Errorf("failed to create request: %w", err)
-// 	}
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("accept", "application/json")
-// 	req.Header.Set("X-API-Key", repo.config.APIKey)
-//
-// 	resp, err := repo.client.Do(req) // Use the injected HTTP client
-// 	if err != nil {
-// 		return fmt.Errorf("failed to send request: %w", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	if resp.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-// 	}
-//
-// 	return nil
-// }
-//
-// // GetAccount retrieves account data from the immudb Vault by account number.
-// func (repo *AccountRepo) GetAccount(accountNumber string) (*dbmodels.Account, error) {
-// 	url := fmt.Sprintf("%s/documents/search", repo.config.BaseURL)
-// 	query := map[string]interface{}{
-// 		"query": map[string]interface{}{
-// 			"account_number": accountNumber,
-// 		},
-// 	}
-// 	payload, err := json.Marshal(query)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to serialize query: %w", err)
-// 	}
-//
-// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to create request: %w", err)
-// 	}
-// 	req.Header.Set("Content-Type", "application/json")
-// 	req.Header.Set("accept", "application/json")
-// 	req.Header.Set("X-API-Key", repo.config.APIKey)
-//
-// 	resp, err := repo.client.Do(req) // Use the injected HTTP client
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to send request: %w", err)
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	if resp.StatusCode != http.StatusOK {
-// 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-// 	}
-//
-// 	var response struct {
-// 		Documents []dbmodels.Account `json:"documents"`
-// 	}
-// 	err = json.NewDecoder(resp.Body).Decode(&response)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to decode response: %w", err)
-// 	}
-//
-// 	if len(response.Documents) == 0 {
-// 		return nil, errors.New("account not found")
-// 	}
-//
-// 	return &response.Documents[0], nil
-// }
-
 // CreateAccount sends account data to the immudb Vault for storage.
 func (repo *AccountRepo) CreateAccount(account dbmodels.Account) error {
 	url := fmt.Sprintf("%s/document", repo.config.BaseURL)
+
+	// Serialize account data
 	payload, err := json.Marshal(account)
 	if err != nil {
+		log.Printf("[ERROR] Failed to serialize account data: %v", err)
 		return fmt.Errorf("failed to serialize account data: %w", err)
 	}
+	log.Printf("[INFO] Serialized account payload: %s", string(payload))
 
-	// Change the request to use POST instead of PUT
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	// Create the HTTP request
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(payload))
 	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("X-API-Key", repo.config.APIKey)
+	log.Printf("[INFO] Sending request to immudb Vault. URL: %s, Method: PUT, Headers: %v", url, req.Header)
 
-	resp, err := repo.client.Do(req) // Use the injected HTTP client
+	// Send the request using the injected HTTP client
+	resp, err := repo.client.Do(req)
 	if err != nil {
+		log.Printf("[ERROR] Failed to send HTTP request: %v", err)
 		return fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
+	// Log the response status code
+	log.Printf("[INFO] Received response from immudb Vault. Status Code: %d", resp.StatusCode)
+
+	// Read and log the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+	log.Printf("[INFO] Response body from immudb Vault: %s", string(body))
+
+	// Check for non-OK status code
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] Unexpected status code: %d, Response: %s", resp.StatusCode, string(body))
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	log.Printf("[INFO] Account successfully created in immudb Vault.")
 	return nil
 }
 
-// GetAccount retrieves account data from the immudb Vault by account number using POST.
-func (repo *AccountRepo) GetAccount(accountNumber string) (*dbmodels.Account, error) {
+// GetAccounts retrieves a list of accounts from the immudb Vault.
+func (repo *AccountRepo) GetAccounts(page, perPage int) (map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/documents/search", repo.config.BaseURL)
 	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"account_number": accountNumber,
-		},
+		"page":    page,
+		"perPage": perPage,
 	}
+
 	payload, err := json.Marshal(query)
 	if err != nil {
+		log.Printf("[ERROR] Failed to serialize query: %v", err)
 		return nil, fmt.Errorf("failed to serialize query: %w", err)
 	}
 
-	// Use POST for retrieval as required
+	log.Printf("[INFO] Sending request to immudb Vault. URL: %s, Payload: %s", url, string(payload))
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
+		log.Printf("[ERROR] Failed to create request: %v", err)
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("X-API-Key", repo.config.APIKey)
 
-	resp, err := repo.client.Do(req) // Use the injected HTTP client
+	resp, err := repo.client.Do(req)
 	if err != nil {
+		log.Printf("[ERROR] Failed to send request to immudb Vault: %v", err)
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	log.Printf("[INFO] Response Status Code: %d", resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var response struct {
-		Documents []dbmodels.Account `json:"documents"`
-	}
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	if err != nil {
+	log.Printf("[INFO] Raw response from immudb Vault: %s", string(body))
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Printf("[ERROR] Failed to decode response: %v", err)
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	if len(response.Documents) == 0 {
-		return nil, errors.New("account not found")
-	}
-
-	return &response.Documents[0], nil
+	return response, nil
 }

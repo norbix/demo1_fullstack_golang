@@ -18,7 +18,7 @@ func NewAccountHandler(accountService *services.AccountService) *AccountHandler 
 	return &AccountHandler{accountService: accountService}
 }
 
-// CreateAccount handles the "POST /accounts" endpoint.
+// CreateAccount handles the "PUT /accounts" endpoint.
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var account dbmodels.Account
 	// Parse the request body into the account struct
@@ -37,26 +37,23 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GetAccount handles the "GET /accounts/{accountNumber}" endpoint.
-func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
-	// Extract the account number from the URL path
-	accountNumber := r.URL.Query().Get("account_number")
-	if accountNumber == "" {
-		http.Error(w, "Account number is required", http.StatusBadRequest)
+func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
+	var pagination struct {
+		Page    int `json:"page"`
+		PerPage int `json:"perPage"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&pagination); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Call the service layer to retrieve the account
-	account, err := h.accountService.GetAccount(accountNumber)
+	response, err := h.accountService.GetAccounts(pagination.Page, pagination.PerPage)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Respond with the account data as JSON
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(account); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
+	json.NewEncoder(w).Encode(response)
 }

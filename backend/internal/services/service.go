@@ -33,18 +33,12 @@ func (s *AccountService) CreateAccount(account dbmodels.Account) error {
 	return s.repo.CreateAccount(account)
 }
 
-// GetAccount retrieves an account and performs additional checks.
-func (s *AccountService) GetAccount(accountNumber string) (*dbmodels.Account, error) {
-	// Validate input
-	if accountNumber == "" {
-		return nil, errors.New("account number is required")
-	}
-
-	// Retrieve the account from the repository
-	account, err := s.repo.GetAccount(accountNumber)
+// GetAccounts retrieves a list of accounts.
+func (s *AccountService) GetAccounts(page, perPage int) (map[string]interface{}, error) {
+	response, err := s.repo.GetAccounts(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
-	return account, nil
+	return response, nil
 }

@@ -10,7 +10,7 @@ type AccountService interface {
 	CreateAccount(account dbmodels.Account) error
 
 	// GetAccount retrieves an account by its account number.
-	GetAccount(accountNumber string) (*dbmodels.Account, error)
+	GetAccounts(page, perPage int) (map[string]interface{}, error)
 }
 
 // DBService provides an implementation of AccountService.
