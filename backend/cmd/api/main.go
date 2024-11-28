@@ -5,14 +5,23 @@ import (
 	"log"
 	"net/http"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"github.com/norbix/demo1_fullstack_golang/backend/configs"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/handlers"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/services"
 
+	_ "github.com/norbix/demo1_fullstack_golang/backend/docs"
+
 	"github.com/gorilla/mux"
 )
 
+// @title Backend Component API
+// @version 1.0
+// @description This is a sample server for managing accounts.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// Load configuration
 	config, err := configs.LoadConfig() // Load configuration
@@ -30,6 +39,7 @@ func main() {
 
 	// Register endpoints
 	router.HandleFunc("/healthz", healthHandler).Methods("GET")
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 	router.HandleFunc("/accounts", accountHandler.CreateAccount).Methods("PUT")
 	router.HandleFunc("/accounts/retrieve", accountHandler.GetAccounts).Methods("POST")
 
@@ -40,7 +50,13 @@ func main() {
 	}
 }
 
-// healthHandler responds to /healthz with a health status message
+// @Summary Health check
+// @Description Responds with "Backend is healthy!" if the service is up.
+// @Tags health
+// @Accept  json
+// @Produce json
+// @Success 200 {string} string "Backend is healthy!"
+// @Router /healthz [get]
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	// Respond with HTTP 200 OK
 	w.WriteHeader(http.StatusOK)

@@ -1,0 +1,111 @@
+basePath: /
+definitions:
+  github_com_norbix_demo1_fullstack_golang_backend_internal_db_dbmodels.Account:
+    properties:
+      account_name:
+        type: string
+      account_number:
+        type: string
+      address:
+        type: string
+      amount:
+        type: number
+      iban:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_norbix_demo1_fullstack_golang_backend_internal_db_dbmodels.AccountType'
+    type: object
+  github_com_norbix_demo1_fullstack_golang_backend_internal_db_dbmodels.AccountType:
+    enum:
+    - sending
+    - receiving
+    type: string
+    x-enum-varnames:
+    - Sending
+    - Receiving
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for managing accounts.
+  title: Backend Component API
+  version: "1.0"
+paths:
+  /accounts:
+    put:
+      consumes:
+      - application/json
+      description: Creates a new account with the provided details.
+      parameters:
+      - description: Account data
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_norbix_demo1_fullstack_golang_backend_internal_db_dbmodels.Account'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create an account
+      tags:
+      - accounts
+  /accounts/retrieve:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves accounts with pagination.
+      parameters:
+      - description: Pagination details
+        in: body
+        name: pagination
+        required: true
+        schema:
+          additionalProperties:
+            type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Retrieve accounts
+      tags:
+      - accounts
+  /healthz:
+    get:
+      consumes:
+      - application/json
+      description: Responds with "Backend is healthy!" if the service is up.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Backend is healthy!
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+swagger: "2.0"

@@ -18,7 +18,16 @@ func NewAccountHandler(accountService *services.AccountService) *AccountHandler 
 	return &AccountHandler{accountService: accountService}
 }
 
-// CreateAccount handles the "PUT /accounts" endpoint.
+// @Summary Create an account
+// @Description Creates a new account with the provided details.
+// @Tags accounts
+// @Accept  json
+// @Produce json
+// @Param account body dbmodels.Account true "Account data"
+// @Success 201 {string} string "Created"
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 500 {string} string "Internal server error"
+// @Router /accounts [put]
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var account dbmodels.Account
 	// Parse the request body into the account struct
@@ -37,6 +46,16 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// @Summary Retrieve accounts
+// @Description Retrieves accounts with pagination.
+// @Tags accounts
+// @Accept  json
+// @Produce json
+// @Param pagination body map[string]int true "Pagination details"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {string} string "Invalid request body"
+// @Failure 500 {string} string "Internal server error"
+// @Router /accounts/retrieve [post]
 func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	var pagination struct {
 		Page    int `json:"page"`
