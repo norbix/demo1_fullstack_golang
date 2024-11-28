@@ -18,49 +18,49 @@ type ConfigTestSuite struct {
 // SetupSuite runs once before the tests are run
 func (suite *ConfigTestSuite) SetupSuite() {
 	// Store the original values of the environment variables
-	suite.originalBaseURL = os.Getenv("CN_BASE_URL")
-	suite.originalAPIKey = os.Getenv("CN_API_KEY")
+	suite.originalBaseURL = os.Getenv("BASE_URL")
+	suite.originalAPIKey = os.Getenv("API_KEY")
 }
 
 // TearDownSuite runs once after all tests in the suite are run
 func (suite *ConfigTestSuite) TearDownTest() {
 	// Restore the original values of the environment variables
-	err := os.Setenv("CN_BASE_URL", suite.originalBaseURL)
+	err := os.Setenv("BASE_URL", suite.originalBaseURL)
 	if err != nil {
-		suite.Fail("Unable to restore original CN_BASE_URL")
+		suite.Fail("Unable to restore original BASE_URL")
 	}
 
-	err = os.Setenv("CN_API_KEY", suite.originalAPIKey)
+	err = os.Setenv("API_KEY", suite.originalAPIKey)
 	if err != nil {
-		suite.Fail("Unable to restore original CN_API_KEY")
+		suite.Fail("Unable to restore original API_KEY")
 	}
 }
 
 // SetupTest runs before each test in the suite
 func (suite *ConfigTestSuite) SetupTest() {
 	// Clear the environment variables before each test
-	err := os.Unsetenv("CN_BASE_URL")
+	err := os.Unsetenv("BASE_URL")
 	if err != nil {
-		suite.Fail("Unable to unset CN_BASE_URL")
+		suite.Fail("Unable to unset BASE_URL")
 	}
 
-	err = os.Unsetenv("CN_API_KEY")
+	err = os.Unsetenv("API_KEY")
 	if err != nil {
-		suite.Fail("Unable to unset CN_API_KEY")
+		suite.Fail("Unable to unset API_KEY")
 	}
 }
 
 // TestLoadConfig_OK tests the LoadConfig function when the environment variables are properly set
 func (suite *ConfigTestSuite) TestLoadConfig_OK() {
 	// Given: Environment variables are properly set
-	err := os.Setenv("CN_BASE_URL", "http://example.com")
+	err := os.Setenv("BASE_URL", "http://example.com")
 	if err != nil {
-		suite.Fail("Unable to set CN_BASE_URL")
+		suite.Fail("Unable to set BASE_URL")
 	}
 
-	err = os.Setenv("CN_API_KEY", "test-api-key")
+	err = os.Setenv("API_KEY", "test-api-key")
 	if err != nil {
-		suite.Fail("Unable to set CN_API_KEY")
+		suite.Fail("Unable to set API_KEY")
 	}
 
 	// When: LoadConfig is called
@@ -73,12 +73,12 @@ func (suite *ConfigTestSuite) TestLoadConfig_OK() {
 	assert.Equal(suite.T(), "test-api-key", config.APIKey)
 }
 
-// TestLoadConfig_MissingAPIKey tests the LoadConfig function when the CN_API_KEY environment variable is missing
+// TestLoadConfig_MissingAPIKey tests the LoadConfig function when the API_KEY environment variable is missing
 func (suite *ConfigTestSuite) TestLoadConfig_MissingBaseURL() {
-	// Given: CN_BASE_URL is not set
-	err := os.Setenv("CN_API_KEY", "test-api-key")
+	// Given: BASE_URL is not set
+	err := os.Setenv("API_KEY", "test-api-key")
 	if err != nil {
-		suite.Fail("Unable to set CN_API_KEY")
+		suite.Fail("Unable to set API_KEY")
 	}
 
 	// When: LoadConfig is called
@@ -90,12 +90,12 @@ func (suite *ConfigTestSuite) TestLoadConfig_MissingBaseURL() {
 	assert.Equal(suite.T(), "missing required environment variables", err.Error())
 }
 
-// TestLoadConfig_MissingAPIKey tests LoadConfig function when the CN_API_KEY environment variable is missing
+// TestLoadConfig_MissingAPIKey tests LoadConfig function when the API_KEY environment variable is missing
 func (suite *ConfigTestSuite) TestLoadConfig_MissingAPIKey() {
-	// Given: CN_API_KEY is not set
-	err := os.Setenv("CN_BASE_URL", "http://example.com")
+	// Given: API_KEY is not set
+	err := os.Setenv("BASE_URL", "http://example.com")
 	if err != nil {
-		suite.Fail("Unable to set CN_BASE_URL")
+		suite.Fail("Unable to set BASE_URL")
 	}
 
 	// When: LoadConfig is called

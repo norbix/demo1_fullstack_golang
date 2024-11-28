@@ -11,8 +11,8 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	baseURL := os.Getenv("CN_BASE_URL")
-	apiKey := os.Getenv("CN_API_KEY")
+	baseURL := os.Getenv("BASE_URL")
+	apiKey := os.Getenv("API_KEY")
 
 	if baseURL == "" || apiKey == "" {
 		return nil, errors.New("missing required environment variables")
