@@ -8,6 +8,8 @@ services:
         container_name: backend-service
         ports:
             - "8080:8080"
+        env_file:
+          - docker/backend/.env
         environment:
             - ENV=production
         healthcheck:
@@ -25,6 +27,8 @@ services:
         container_name: frontend-service
         ports:
             - "3000:3000"
+        env_file:
+          - docker/frontend/.env
 # TODO: Add depends_on
         environment:
             - ENV=production
