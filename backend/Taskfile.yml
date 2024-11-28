@@ -55,6 +55,24 @@ tasks:
       - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down --volumes --remove-orphans
       - docker system prune -f --volumes
 
+# Docker: Clean up all resources
+  docker:clean-all:
+    desc: "Delete all Docker objects including images, containers, volumes, and networks"
+    cmds:
+      - echo "Stopping and removing all running containers..."
+      - docker ps -q | xargs -r docker stop
+      - echo "Removing all containers..."
+      - docker ps -aq | xargs -r docker rm
+      - echo "Removing all images..."
+      - docker images -q | xargs -r docker rmi -f
+      - echo "Removing all volumes..."
+      - docker volume ls -q | xargs -r docker volume rm
+      - echo "Removing all networks (except default)..."
+      - docker network ls -q | xargs -r docker network rm
+      - echo "Pruning unused Docker objects..."
+      - docker system prune -af --volumes
+
+
   # Run the server
   run:
     desc: "Run the Go server"
