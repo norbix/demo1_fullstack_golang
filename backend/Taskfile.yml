@@ -1,0 +1,205 @@
+version: '3'
+
+# Global variables
+vars:
+  APP_NAME: "backend_component"
+  MAIN_FILE: "cmd/api/main.go"
+  SWAGGER_DOCS_DIR: "docs"
+  SWAGGER_CMD: "github.com/swaggo/swag/cmd/swag"
+  OS:
+    default: "linux"
+    windows: "windows"
+  DOCKER_COMPOSE_FILE: "../docker/docker-compose.yml"
+
+tasks:
+  # Default task: show help
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
+
+  # Docker Compose: Start services
+  docker:up:
+    desc: "Start all services with Docker Compose"
+    cmds:
+      - echo "Starting all services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+
+  # Docker Compose: Stop services
+  docker:down:
+    desc: "Stop all services with Docker Compose"
+    cmds:
+      - echo "Stopping all services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down
+
+  # Docker Compose: Rebuild services
+  docker:rebuild:
+    desc: "Rebuild and restart services with Docker Compose"
+    cmds:
+      - task docker:down
+      - echo "Rebuilding services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} build
+      - task docker:up
+
+  # Docker Compose: View logs
+  docker:logs:
+    desc: "View logs from Docker Compose services"
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
+
+  # Docker Compose: Clean up resources
+  docker:clean:
+    desc: "Clean up unused Docker resources"
+    cmds:
+      - echo "Cleaning up unused Docker resources..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down --volumes --remove-orphans
+      - docker system prune -f --volumes
+
+# Docker: Clean up all resources
+  docker:clean-all:
+    desc: "Delete all Docker objects including images, containers, volumes, and networks"
+    cmds:
+      - echo "Stopping all running containers..."
+      - |
+        docker ps -q | while read -r container; do
+          docker stop "$container";
+        done
+      - echo "Removing all containers..."
+      - |
+        docker ps -aq | while read -r container; do
+          docker rm "$container";
+        done
+      - echo "Removing all images..."
+      - |
+        docker images -q | while read -r image; do
+          docker rmi -f "$image";
+        done
+      - echo "Removing all volumes..."
+      - |
+        docker volume ls -q | while read -r volume; do
+          docker volume rm "$volume";
+        done
+      - echo "Removing all networks (except default)..."
+      - |
+        docker network ls --filter "type=custom" -q | while read -r network; do
+          docker network rm "$network";
+        done
+      - echo "Pruning unused Docker objects..."
+      - docker system prune -af --volumes
+
+  # Run the server
+  run:
+    desc: "Run the Go server"
+    cmds:
+      - echo "Starting the server..."
+      - go run {{.MAIN_FILE}}
+
+  # Generate Swagger documentation
+  swagger:init:
+    desc: "Generate Swagger documentation"
+    cmds:
+      - echo "Generating Swagger documentation..."
+      - swag init -g {{.MAIN_FILE}} --output {{.SWAGGER_DOCS_DIR}} --parseDependency --parseDepth 3
+    deps:
+      - swagger:install
+
+  # Install Swagger CLI
+  swagger:install:
+    desc: "Install Swagger CLI tool"
+    cmds:
+      - go install {{.SWAGGER_CMD}}@latest
+    silent: true
+
+  # Run tests
+  test:
+    desc: "Run tests for the project"
+    cmds:
+      - echo "Running tests..."
+      - go test ./... -cover
+
+  # Lint the code
+  lint:
+    desc: "Run linter (requires golangci-lint)"
+    cmds:
+      - echo "Running linter..."
+      - golangci-lint run
+    deps:
+      - lint:install
+
+  # Install golangci-lint
+  lint:install:
+    desc: "Install golangci-lint"
+    cmds:
+      - |
+        if [ "{{.OS}}" == "windows" ]; then \
+          PowerShell -Command "Invoke-WebRequest -Uri https://github.com/golangci/golangci-lint/releases/latest/download/golangci-lint-windows-amd64.zip -OutFile golangci-lint.zip; Expand-Archive -Path golangci-lint.zip -DestinationPath $(go env GOPATH)/bin"; \
+        else \
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin; \
+        fi
+
+  # Build the binary
+  build:
+    desc: "Build the Go binary"
+    cmds:
+      - echo "Building the binary..."
+      - go build -o bin/{{.APP_NAME}} {{.MAIN_FILE}}
+
+  # Clean up build artifacts
+  clean:
+    desc: "Clean up generated files"
+    cmds:
+      - |
+        if [ "{{.OS}}" == "windows" ]; then \
+          PowerShell -Command "Remove-Item -Recurse -Force bin; Remove-Item -Recurse -Force {{.SWAGGER_DOCS_DIR}}/*.json; Remove-Item -Recurse -Force {{.SWAGGER_DOCS_DIR}}/*.yaml"; \
+        else \
+          rm -rf bin/; \
+          rm -rf {{.SWAGGER_DOCS_DIR}}/*.json {{.SWAGGER_DOCS_DIR}}/*.yaml; \
+        fi
+    silent: true
+
+  # Format the code
+  format:
+    desc: "Format the code using gofmt"
+    cmds:
+      - echo "Formatting the code..."
+      - gofmt -w .
+
+  # Full workflow for development
+  dev:
+    desc: "Run the full development workflow (clean, build, run, and test)"
+    cmds:
+      - task clean
+      - task swagger:init
+      - task build
+      - task run
+
+  install_mockery:
+    desc: "Install mockery tool for generating mocks"
+    cmds:
+      - go install github.com/vektra/mockery/v2@latest
+
+  generate_mocks:
+    desc: "Generate mocks for all interfaces, placing them in 'internal/mocks' directory"
+    deps:
+      - install_mockery
+    cmds:
+      - echo "Generating mocks for all interfaces into 'internal/mocks' directory..."
+      - |
+        mockery --all --output=internal/mocks --case=underscore --with-expecter
+
+  clean_mocks:
+    desc: "Remove all generated mocks in the 'internal/mocks/' directory"
+    cmds:
+      - |
+        if [ "$(uname -s)" = "Linux" ] || [ "$(uname -s)" = "Darwin" ]; then
+          # Unix/Linux/macOS
+          if [ -d "internal/mocks/" ]; then
+            rm -rf internal/mocks/*
+          else
+            echo "Mocks directory not found."
+          fi
+        else
+          # Windows
+          del /q internal\\mocks\\*
+        fi
+    summary: "Clean up all generated mocks in the 'internal/mocks/' directory"
