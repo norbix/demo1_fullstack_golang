@@ -6,9 +6,7 @@ import (
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
 )
 
-// CreateAccount validates and creates a new account.
 func (s accountServiceImpl) CreateAccount(account dbmodels.Account) (map[string]interface{}, error) {
-
 	// Business rule: Ensure account number is not empty
 	if account.AccountNumber == "" {
 		return nil, errors.New("account number is required")
