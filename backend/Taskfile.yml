@@ -172,3 +172,40 @@ tasks:
       - task swagger:init
       - task build
       - task run
+
+  install_mockery:
+    desc: "Install mockery tool for generating mocks"
+    cmds:
+      - go install github.com/vektra/mockery/v2@latest
+
+  generate_mocks:
+    desc: "Generate mocks for all interfaces, placing them in 'internal/mocks' directory"
+    deps:
+      - install_mockery
+    cmds:
+      - echo "Generating mocks for all interfaces into 'internal/mocks' directory..."
+      - |
+        mockery --all --output=internal/mocks --case=underscore --with-expecter
+
+  clean_mocks:
+    desc: "Remove all generated mocks in the 'internal/mocks/' directory"
+    cmds:
+      - |
+        if [ "$(uname -s)" = "Linux" ] || [ "$(uname -s)" = "Darwin" ]; then
+          # Unix/Linux/macOS
+          if [ -d "internal/mocks/" ]; then
+            rm -rf internal/mocks/*
+          else
+            echo "Mocks directory not found."
+          fi
+        elif [ "$(uname -o)" = "Msys" ] || [ "$(uname -o)" = "Windows_NT" ]; then
+          # Windows
+          if [ -d "internal\\mocks\\" ]; then
+            del /q internal\\mocks\\*
+          else
+            echo "Mocks directory not found."
+          fi
+        else
+          echo "Unsupported platform."
+        fi
+    summary: "Clean up all generated mocks in the 'internal/mocks/' directory"
