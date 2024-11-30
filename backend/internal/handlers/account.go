@@ -5,18 +5,7 @@ import (
 	"net/http"
 
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
-	"github.com/norbix/demo1_fullstack_golang/backend/internal/services"
 )
-
-// AccountHandler provides HTTP handlers for account-related endpoints.
-type AccountHandler struct {
-	accountService *services.AccountService
-}
-
-// NewAccountHandler initializes an AccountHandler with the given service.
-func NewAccountHandler(accountService *services.AccountService) *AccountHandler {
-	return &AccountHandler{accountService: accountService}
-}
 
 // @Summary Create an account
 // @Description Creates a new account with the provided details.
@@ -28,7 +17,7 @@ func NewAccountHandler(accountService *services.AccountService) *AccountHandler 
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 500 {string} string "Internal server error"
 // @Router /accounts [put]
-func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (h accountHandlerImpl) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var account dbmodels.Account
 	// Parse the request body into the account struct
 	if err := json.NewDecoder(r.Body).Decode(&account); err != nil {
@@ -56,7 +45,7 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {string} string "Invalid request body"
 // @Failure 500 {string} string "Internal server error"
 // @Router /accounts/retrieve [post]
-func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
+func (h accountHandlerImpl) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	var pagination struct {
 		Page    int `json:"page"`
 		PerPage int `json:"perPage"`
@@ -74,5 +63,10 @@ func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }

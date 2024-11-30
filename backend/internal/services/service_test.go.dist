@@ -1,0 +1,42 @@
+package services
+
+import (
+	"testing"
+
+	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
+	"github.com/norbix/demo1_fullstack_golang/backend/internal/mocks"
+	"github.com/norbix/demo1_fullstack_golang/backend/internal/services"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+)
+
+func TestCreateAccount_Success(t *testing.T) {
+	mockRepo := &mocks.AccountRepository{}
+	service := services.NewAccountService(mockRepo)
+
+	account := dbmodels.Account{
+		AccountNumber: "12345",
+		Amount:        100,
+	}
+
+	mockRepo.On("CreateAccount", account).Return(nil)
+
+	err := service.CreateAccount(account)
+
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
+
+func TestCreateAccount_InvalidInput(t *testing.T) {
+	mockRepo := &mocks.AccountRepository{}
+	service := services.NewAccountService(mockRepo)
+
+	account := dbmodels.Account{
+		AccountNumber: "",
+		Amount:        -10,
+	}
+
+	err := service.CreateAccount(account)
+
+	assert.EqualError(t, err, "account number is required")
+}

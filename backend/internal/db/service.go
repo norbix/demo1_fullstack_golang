@@ -1,27 +1,42 @@
 package db
 
 import (
+	"crypto/tls"
+	"net/http"
+
+	"github.com/norbix/demo1_fullstack_golang/backend/configs"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
 )
 
-// AccountService defines the interface for account-related operations.
-type AccountService interface {
-	// CreateAccount creates a new account.
-	CreateAccount(account dbmodels.Account) error
+// AccountRepository defines the interface for account-related database operations.
+type AccountRepository interface {
+	// CreateAccount persists a new account to the database.
+	CreateAccount(dbmodels.Account) error
 
-	// GetAccount retrieves an account by its account number.
-	GetAccounts(page, perPage int) (map[string]interface{}, error)
+	// GetAccounts retrieves a list of accounts with pagination.
+	GetAccounts(int, int) (map[string]interface{}, error)
 }
 
-// DBService provides an implementation of AccountService.
-type DBService struct {
-	// This can include any dependencies, e.g., a database client
-	Repo AccountService
+type accountRepositoryImpl struct {
+	config *configs.Config
+	client *http.Client
 }
 
-// NewDBService initializes a new DBService with an AccountService implementation.
-func NewDBService(repo AccountService) *DBService {
-	return &DBService{
-		Repo: repo,
+// NewAccountRepo initializes the AccountRepo with the given config and HTTP client.
+// If no client is provided, it defaults to http.DefaultClient.
+func NewAccountRepo(config *configs.Config, client *http.Client) AccountRepository {
+	if config.SkipTLS {
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+	} else {
+		client = http.DefaultClient
+	}
+
+	return accountRepositoryImpl{
+		config: config,
+		client: client,
 	}
 }

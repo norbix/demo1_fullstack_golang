@@ -2,44 +2,17 @@ package db
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 
-	"github.com/norbix/demo1_fullstack_golang/backend/configs"
 	"github.com/norbix/demo1_fullstack_golang/backend/internal/db/dbmodels"
 )
 
-// AccountRepo interacts with the downstream immudb Vault API.
-type AccountRepo struct {
-	config *configs.Config
-	client *http.Client
-}
-
-// NewAccountRepo initializes the AccountRepo with the given config and HTTP client.
-// If no client is provided, it defaults to http.DefaultClient.
-func NewAccountRepo(config *configs.Config, client *http.Client) *AccountRepo {
-	if config.SkipTLS {
-		client = &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
-		}
-	} else {
-		client = http.DefaultClient
-	}
-
-	return &AccountRepo{
-		config: config,
-		client: client,
-	}
-}
-
 // CreateAccount sends account data to the immudb Vault for storage.
-func (repo *AccountRepo) CreateAccount(account dbmodels.Account) error {
+func (repo accountRepositoryImpl) CreateAccount(account dbmodels.Account) error {
 	url := fmt.Sprintf("%s/document", repo.config.BaseURL)
 
 	// Serialize account data
@@ -91,7 +64,7 @@ func (repo *AccountRepo) CreateAccount(account dbmodels.Account) error {
 }
 
 // GetAccounts retrieves a list of accounts from the immudb Vault.
-func (repo *AccountRepo) GetAccounts(page, perPage int) (map[string]interface{}, error) {
+func (repo accountRepositoryImpl) GetAccounts(page, perPage int) (map[string]interface{}, error) {
 	url := fmt.Sprintf("%s/documents/search", repo.config.BaseURL)
 	query := map[string]interface{}{
 		"page":    page,
