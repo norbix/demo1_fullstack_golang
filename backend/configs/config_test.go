@@ -13,6 +13,7 @@ type ConfigTestSuite struct {
 	suite.Suite
 	originalBaseURL string
 	originalAPIKey  string
+	originalSkipTLS string
 }
 
 // SetupSuite runs once before the tests are run
