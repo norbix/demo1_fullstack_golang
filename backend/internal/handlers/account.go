@@ -42,7 +42,9 @@ func (h accountHandlerImpl) CreateAccount(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Return the response
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -78,7 +80,7 @@ func (h accountHandlerImpl) GetAccounts(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
