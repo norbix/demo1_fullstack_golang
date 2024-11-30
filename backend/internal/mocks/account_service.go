@@ -21,21 +21,33 @@ func (_m *AccountService) EXPECT() *AccountService_Expecter {
 }
 
 // CreateAccount provides a mock function with given fields: _a0
-func (_m *AccountService) CreateAccount(_a0 dbmodels.Account) error {
+func (_m *AccountService) CreateAccount(_a0 dbmodels.Account) (map[string]interface{}, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateAccount")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(dbmodels.Account) error); ok {
+	var r0 map[string]interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(dbmodels.Account) (map[string]interface{}, error)); ok {
+		return rf(_a0)
+	}
+	if rf, ok := ret.Get(0).(func(dbmodels.Account) map[string]interface{}); ok {
 		r0 = rf(_a0)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(dbmodels.Account) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // AccountService_CreateAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccount'
@@ -56,12 +68,12 @@ func (_c *AccountService_CreateAccount_Call) Run(run func(_a0 dbmodels.Account))
 	return _c
 }
 
-func (_c *AccountService_CreateAccount_Call) Return(_a0 error) *AccountService_CreateAccount_Call {
-	_c.Call.Return(_a0)
+func (_c *AccountService_CreateAccount_Call) Return(_a0 map[string]interface{}, _a1 error) *AccountService_CreateAccount_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *AccountService_CreateAccount_Call) RunAndReturn(run func(dbmodels.Account) error) *AccountService_CreateAccount_Call {
+func (_c *AccountService_CreateAccount_Call) RunAndReturn(run func(dbmodels.Account) (map[string]interface{}, error)) *AccountService_CreateAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

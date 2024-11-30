@@ -25,14 +25,29 @@ func (h accountHandlerImpl) CreateAccount(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Validate the input
+	if account.AccountNumber == "" {
+		http.Error(w, "Account number is required", http.StatusBadRequest)
+		return
+	}
+	if account.Amount < 0 {
+		http.Error(w, "Amount cannot be negative", http.StatusBadRequest)
+		return
+	}
+
 	// Call the service layer to create the account
-	if err := h.accountService.CreateAccount(account); err != nil {
+	response, err := h.accountService.CreateAccount(account)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Respond with 201 Created
-	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // @Summary Retrieve accounts

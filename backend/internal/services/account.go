@@ -7,19 +7,25 @@ import (
 )
 
 // CreateAccount validates and creates a new account.
-func (s accountServiceImpl) CreateAccount(account dbmodels.Account) error {
+func (s accountServiceImpl) CreateAccount(account dbmodels.Account) (map[string]interface{}, error) {
+
 	// Business rule: Ensure account number is not empty
 	if account.AccountNumber == "" {
-		return errors.New("account number is required")
+		return nil, errors.New("account number is required")
 	}
 
 	// Business rule: Ensure amount is non-negative
 	if account.Amount < 0 {
-		return errors.New("amount cannot be negative")
+		return nil, errors.New("amount cannot be negative")
 	}
 
 	// Delegate persistence to the repository
-	return s.repo.CreateAccount(account)
+	response, err := s.repo.CreateAccount(account)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 // GetAccounts retrieves a list of accounts.

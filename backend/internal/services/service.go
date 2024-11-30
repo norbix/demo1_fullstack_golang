@@ -7,7 +7,7 @@ import (
 
 // AccountService defines the interface for account-related operations.
 type AccountService interface {
-	CreateAccount(dbmodels.Account) error
+	CreateAccount(dbmodels.Account) (map[string]interface{}, error)
 	GetAccounts(int, int) (map[string]interface{}, error)
 }
 
