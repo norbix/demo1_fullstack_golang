@@ -59,19 +59,33 @@ tasks:
   docker:clean-all:
     desc: "Delete all Docker objects including images, containers, volumes, and networks"
     cmds:
-      - echo "Stopping and removing all running containers..."
-      - docker ps -q | xargs -r docker stop
+      - echo "Stopping all running containers..."
+      - |
+        docker ps -q | while read -r container; do
+          docker stop "$container";
+        done
       - echo "Removing all containers..."
-      - docker ps -aq | xargs -r docker rm
+      - |
+        docker ps -aq | while read -r container; do
+          docker rm "$container";
+        done
       - echo "Removing all images..."
-      - docker images -q | xargs -r docker rmi -f
+      - |
+        docker images -q | while read -r image; do
+          docker rmi -f "$image";
+        done
       - echo "Removing all volumes..."
-      - docker volume ls -q | xargs -r docker volume rm
+      - |
+        docker volume ls -q | while read -r volume; do
+          docker volume rm "$volume";
+        done
       - echo "Removing all networks (except default)..."
-      - docker network ls -q | xargs -r docker network rm
+      - |
+        docker network ls --filter "type=custom" -q | while read -r network; do
+          docker network rm "$network";
+        done
       - echo "Pruning unused Docker objects..."
       - docker system prune -af --volumes
-
 
   # Run the server
   run:
