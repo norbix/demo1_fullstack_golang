@@ -2,6 +2,7 @@ package db
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -21,9 +22,16 @@ type AccountRepo struct {
 // NewAccountRepo initializes the AccountRepo with the given config and HTTP client.
 // If no client is provided, it defaults to http.DefaultClient.
 func NewAccountRepo(config *configs.Config, client *http.Client) *AccountRepo {
-	if client == nil {
+	if config.SkipTLS {
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+	} else {
 		client = http.DefaultClient
 	}
+
 	return &AccountRepo{
 		config: config,
 		client: client,
