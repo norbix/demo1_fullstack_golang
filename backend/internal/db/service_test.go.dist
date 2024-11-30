@@ -21,9 +21,12 @@ func (m *MockAccountRepo) CreateAccount(account dbmodels.Account) error {
 	return args.Error(0)
 }
 
+// GetAccounts(page, perPage int) (map[string]interface{}, error)
+// func (m *MockAccountRepo) GetAccounts(page, perPage string) (*dbmodels.Account, error) {
+
 // GetAccount mocks the GetAccount method.
-func (m *MockAccountRepo) GetAccount(accountNumber string) (*dbmodels.Account, error) {
-	args := m.Called(accountNumber)
+func (m *MockAccountRepo) GetAccounts(page, perPage string) (map[string]interface{}, error) {
+	args := m.Called(page, perPage)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
