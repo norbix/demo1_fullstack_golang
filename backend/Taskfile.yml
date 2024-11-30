@@ -198,14 +198,8 @@ tasks:
           else
             echo "Mocks directory not found."
           fi
-        elif [ "$(uname -o)" = "Msys" ] || [ "$(uname -o)" = "Windows_NT" ]; then
-          # Windows
-          if [ -d "internal\\mocks\\" ]; then
-            del /q internal\\mocks\\*
-          else
-            echo "Mocks directory not found."
-          fi
         else
-          echo "Unsupported platform."
+          # Windows
+          del /q internal\\mocks\\*
         fi
     summary: "Clean up all generated mocks in the 'internal/mocks/' directory"
