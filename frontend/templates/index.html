@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Go Wasm Frontend</title>
+</head>
+<body>
+<h1>Account Management</h1>
+<div>
+    <h2>Create Account</h2>
+    <input id="account_name" placeholder="Account Name" />
+    <input id="account_number" placeholder="Account Number" />
+    <input id="address" placeholder="Address" />
+    <input id="amount" type="number" placeholder="Amount" />
+    <input id="iban" placeholder="IBAN" />
+    <select id="type">
+        <option value="sending">Sending</option>
+        <option value="receiving">Receiving</option>
+    </select>
+    <button id="create-account-btn">Create Account</button>
+</div>
+<div>
+    <h2>Retrieve Accounts</h2>
+    <input id="page" type="number" placeholder="Page" />
+    <input id="size" type="number" placeholder="Size" />
+    <button id="retrieve-accounts-btn">Retrieve Accounts</button>
+</div>
+<div>
+    <h2>Health Check</h2>
+    <button id="health-check-btn">Check Health</button>
+</div>
+<script src="wasm_exec.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
