@@ -11,13 +11,16 @@ tasks:
     desc: "Build the frontend WebAssembly binary on Windows"
     cmds:
       - echo "Building frontend WebAssembly (Windows)..."
-      - mkdir {{.BUILD_DIR}} 2>nul || echo "Directory already exists"
-      - GOOS=js GOARCH=wasm go build -o {{.BUILD_DIR}}/main.wasm {{.MAIN_FILE}}
-      - xcopy /e /i {{.ASSETS_DIR}} {{.BUILD_DIR}}
+      - mkdir "{{.BUILD_DIR}}" 2>nul || echo "Directory already exists"
+      - GOOS=js GOARCH=wasm go build -o "{{.BUILD_DIR}}/main.wasm" "{{.MAIN_FILE}}"
+      - echo "Copying assets from {{.ASSETS_DIR}} to {{.BUILD_DIR}}..."
+      # Hack
+      - xcopy ".\assets" ".\bin" /e /i /y
       - echo "Frontend build complete! Files located in {{.BUILD_DIR}}"
 
   clean:
     desc: "Clean up generated frontend files on Windows"
     cmds:
       - echo "Cleaning up frontend build directory (Windows)..."
-      - rmdir /s /q {{.BUILD_DIR}} 2>nul || echo "No directory to remove"
+      # TODO: debug this command
+      - rmdir /s /q "{{.BUILD_DIR}}" 2>nul || echo "No directory to remove"
