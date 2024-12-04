@@ -102,8 +102,6 @@ Code is available in the [http-client](backend/docs/http-client) directory.
     
 ## Development Workflow
 
-### Backend
-
 1. Use the following developer workflows in `Taskfile`
 
     ```text
@@ -123,7 +121,3 @@ Code is available in the [http-client](backend/docs/http-client) directory.
     * rebuild:      Rebuild and restart services with Docker Compose
     * up:           Start all services with Docker Compose
       ```   
-
-### Frontend
-
-    WIP

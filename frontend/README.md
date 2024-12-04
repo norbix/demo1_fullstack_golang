@@ -1,6 +1,6 @@
 ## Development Workflow
 
-### Backend
+## Frontend
 
 1. Use the following developer workflows in `Taskfile`
 
@@ -19,4 +19,7 @@
     * build:compile:        Build the frontend WebAssembly binary on Windows
     * default:              List all commands defined.
    ```   
-   
+
+## UI
+
+![UI](assets/ui.png)
