@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Go Wasm Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        div {
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            margin-right: 10px;
+            padding: 5px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Account Management</h1>
+
+<div id="status"></div>
+
+<div>
+    <h2>Create Account</h2>
+    <input id="account_name" placeholder="Account Name" />
+    <input id="account_number" placeholder="Account Number" />
+    <input id="address" placeholder="Address" />
+    <input id="amount" type="number" placeholder="Amount" />
+    <input id="iban" placeholder="IBAN" />
+    <select id="type">
+        <option value="sending">Sending</option>
+        <option value="receiving">Receiving</option>
+    </select>
+    <button id="create-account-btn">Create Account</button>
+</div>
+
+<div>
+    <h2>Retrieve Accounts</h2>
+    <input id="page" type="number" placeholder="Page" value="1" min="1" />
+    <input id="size" type="number" placeholder="Size" value="10" min="1" />
+    <button id="retrieve-accounts-btn">Retrieve Accounts</button>
+</div>
+
+<div>
+    <h2>Retrieved Accounts</h2>
+    <table id="accounts-table" border="1" style="width: 100%; text-align: left;">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Account Name</th>
+            <th>Account Number</th>
+            <th>Address</th>
+            <th>Amount</th>
+            <th>IBAN</th>
+            <th>Type</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Rows will be dynamically inserted here -->
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <h2>Health Check</h2>
+    <button id="health-check-btn">Check Health</button>
+</div>
+
+<script src="wasm_exec.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+version: '3'
+
+# Global variables
+vars:
+  DOCKER_COMPOSE_FILE: "./docker/docker-compose.yml"
+
+tasks:
+  default:
+    desc: "Show available Docker tasks"
+    cmds:
+      - task --list
+
+  up:
+    desc: "Start all services with Docker Compose"
+    cmds:
+      - echo "Starting all services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} up -d
+
+  down:
+    desc: "Stop all services with Docker Compose"
+    cmds:
+      - echo "Stopping all services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down
+
+  rebuild:
+    desc: "Rebuild and restart services with Docker Compose"
+    cmds:
+      - task down
+      - echo "Rebuilding services..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} build
+      - task up
+
+  logs:
+    desc: "View logs from Docker Compose services"
+    cmds:
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} logs -f
+
+  clean:
+    desc: "Clean up unused Docker resources"
+    cmds:
+      - echo "Cleaning up unused Docker resources..."
+      - docker-compose -f {{.DOCKER_COMPOSE_FILE}} down --volumes --remove-orphans
+      - docker system prune -f --volumes
+
+  clean-all:
+    desc: "Delete all Docker objects including images, containers, volumes, and networks"
+    cmds:
+      - echo "Stopping all running containers..."
+      - |
+        docker ps -q | while read -r container; do
+          docker stop "$container";
+        done
+      - echo "Removing all containers..."
+      - |
+        docker ps -aq | while read -r container; do
+          docker rm "$container";
+        done
+      - echo "Removing all images..."
+      - |
+        docker images -q | while read -r image; do
+          docker rmi -f "$image";
+        done
+      - echo "Removing all volumes..."
+      - |
+        docker volume ls -q | while read -r volume; do
+          docker volume rm "$volume";
+        done
+      - echo "Removing all networks (except default)..."
+      - |
+        docker network ls --filter "type=custom" -q | while read -r network; do
+          docker network rm "$network";
+        done
+      - echo "Pruning unused Docker objects..."
+      - docker system prune -af --volumes

@@ -8,7 +8,7 @@ WORKDIR /app
 COPY scripts/build.sh /app/scripts/build.sh
 RUN chmod +x /app/scripts/build.sh
 
-# Copy the Go module files first to leverage Docker caching
+# Copy the Go module files to leverage Docker caching
 COPY ./frontend/go.mod /app/frontend/
 WORKDIR /app/frontend
 RUN go mod download
@@ -16,7 +16,7 @@ RUN go mod download
 # Copy the source code
 COPY frontend/ /app/frontend
 
-# Execute the build script for the frontend
+# Build the WebAssembly frontend using the build script
 RUN /app/scripts/build.sh frontend
 
 # Stage 2: Run
@@ -25,8 +25,11 @@ FROM nginx:alpine
 # Set the working directory
 WORKDIR /usr/share/nginx/html
 
-# Copy the built frontend files from the builder stage
+# Copy static assets and the Wasm binary from the builder stage
 COPY --from=builder /app/frontend/build/ /usr/share/nginx/html
+
+# Copy the nginx configuration if needed (optional)
+COPY docker/frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Expose the frontend port
 EXPOSE 3000

@@ -1,38 +1,42 @@
 version: '3.9'
 
 services:
-    backend:
-        build:
-            context: ..
-            dockerfile: docker/backend/Dockerfile
-        container_name: backend-service
-        ports:
-            - "8080:8080"
-        env_file:
-          - backend/.env
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-        networks:
-          - app-network
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: backend-service
+    ports:
+      - "8080:8080"
+    env_file:
+      - backend/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
 
-    frontend:
-        build:
-            context: ..
-            dockerfile: docker/frontend/Dockerfile
-        container_name: frontend-service
-        ports:
-            - "3000:3000"
-        env_file:
-          - frontend/.env
-        # Hint: No healtcheck for backend
-        depends_on:
-            - backend
-        networks:
-          - app-network
- 
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+    container_name: frontend-service
+    ports:
+      - "3000:3000"
+    env_file:
+      - frontend/.env
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
