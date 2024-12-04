@@ -1,0 +1,82 @@
+version: '3'
+
+# Global variables
+vars:
+  APP_NAME: "backend_component"
+  MAIN_FILE: "cmd/api/main.go"
+  SWAGGER_DOCS_DIR: "docs"
+  SWAGGER_CMD: "github.com/swaggo/swag/cmd/swag"
+
+tasks:
+  # Default task: show help
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
+
+  # Run the server
+  run:
+    desc: "Run the Go server"
+    cmds:
+      - echo "Starting the server..."
+      - go run {{.MAIN_FILE}}
+
+  # Build the binary
+  compile:
+    desc: "Compile the Go binary"
+    cmds:
+      - echo "Compiling the binary..."
+      - go build -o bin/{{.APP_NAME}} {{.MAIN_FILE}}
+
+  # Run tests
+  test:
+    desc: "Run tests for the project"
+    cmds:
+      - echo "Running tests..."
+      - go test ./... -cover
+
+  # Install Swagger CLI
+  swagger:install:
+    desc: "Install Swagger CLI tool"
+    cmds:
+      - go install {{.SWAGGER_CMD}}@latest
+    silent: true
+
+  # Generate Swagger documentation
+  swagger:init:
+    desc: "Generate Swagger documentation"
+    cmds:
+      - echo "Generating Swagger documentation..."
+      - swag init -g {{.MAIN_FILE}} --output {{.SWAGGER_DOCS_DIR}} --parseDependency --parseDepth 3
+    deps:
+      - swagger:install
+
+  # Clean up build swagger artifacts
+  swagger:clean:
+    desc: "Delete all generated contracts in {{.SWAGGER_DOCS_DIR}} directory."
+    cmds:
+      - PowerShell -Command "Remove-Item -Recurse -Force bin; Remove-Item -Recurse -Force {{.SWAGGER_DOCS_DIR}}/*.json; Remove-Item -Recurse -Force {{.SWAGGER_DOCS_DIR}}/*.yaml"; \
+    silent: true
+
+  # Install mockery tool
+  mockery:install:
+    desc: "Install mockery tool for generating mocks"
+    cmds:
+      - go install github.com/vektra/mockery/v2@latest
+
+  # Generate mocks for all interfaces
+  mockery:generate:
+    desc: "Generate mocks for all interfaces, placing them in 'internal/mocks' directory"
+    deps:
+      - install_mockery
+    cmds:
+      - echo "Generating mocks for all interfaces into 'internal/mocks' directory..."
+      - |
+        mockery --all --output=internal/mocks --case=underscore --with-expecter
+
+  # Clean up generated mocks
+  mockery:clean:
+    desc: "Delete all generated mocks in the 'internal/mocks/' directory"
+    cmds:
+      - del /q internal\\mocks\\*
+    summary: "Clean up all generated mocks in the 'internal/mocks/' directory"
