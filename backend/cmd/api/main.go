@@ -38,10 +38,13 @@ func main() {
 	router := mux.NewRouter()
 
 	// Register endpoints
-	router.HandleFunc("/healthz", healthHandler).Methods("GET")
+	router.HandleFunc("/healthz", healthHandler).Methods("GET", "OPTIONS")
 	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
-	router.HandleFunc("/accounts", accountHandler.CreateAccount).Methods("PUT")
-	router.HandleFunc("/accounts/retrieve", accountHandler.GetAccounts).Methods("POST")
+	router.HandleFunc("/accounts", accountHandler.CreateAccount).Methods("PUT", "OPTIONS")
+	router.HandleFunc("/accounts/retrieve", accountHandler.GetAccounts).Methods("POST", "OPTIONS")
+
+	// Add CORS middleware
+	router.Use(corsMiddleware)
 
 	// Start the server
 	fmt.Println("Starting Backend Component on port 8080...")
@@ -63,4 +66,24 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Write a simple health status message
 	_, _ = w.Write([]byte("Backend is healthy!"))
+}
+
+func enableCORS(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+// Hack: Should be in a separate package
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Applying CORS middleware for %s %s\n", r.Method, r.URL.Path)
+		enableCORS(w) // Add CORS headers
+		if r.Method == http.MethodOptions {
+			log.Println("Responding to preflight request")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
