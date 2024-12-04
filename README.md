@@ -118,24 +118,14 @@ Code is available in the [http-client](backend/docs/http-client) directory.
     ```text
     task: [default] task --list
     task: Available tasks for this project:
-    * build:                Build the Go binary
-    * clean:                Clean up generated files
-    * default:              Show available tasks
-    * dev:                  Run the full development workflow (clean, build, run, and test)
-    * docker:clean:         Clean up unused Docker resources
-    * docker:clean-all:     Delete all Docker objects including images, containers, volumes, and networks
-    * docker:down:          Stop all services with Docker Compose
-    * docker:logs:          View logs from Docker Compose services
-    * docker:rebuild:       Rebuild and restart services with Docker Compose
-    * docker:up:            Start all services with Docker Compose
-    * format:               Format the code using gofmt
-    * lint:                 Run linter (requires golangci-lint)
-    * lint:install:         Install golangci-lint
-    * run:                  Run the Go server
-    * swagger:init:         Generate Swagger documentation
-    * swagger:install:      Install Swagger CLI tool
-    * test:                 Run tests for the project
-    ```   
+    * clean:        Clean up unused Docker resources
+    * clean-all:    Delete all Docker objects including images, containers, volumes, and networks
+    * default:      Show available Docker tasks
+    * down:         Stop all services with Docker Compose
+    * logs:         View logs from Docker Compose services
+    * rebuild:      Rebuild and restart services with Docker Compose
+    * up:           Start all services with Docker Compose
+      ```   
 
 ### Frontend
 
