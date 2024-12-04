@@ -43,3 +43,6 @@ hack/
 
 # Ignore IntelliJ cache/output
 out/
+
+backend/bin
+frontend/bin
