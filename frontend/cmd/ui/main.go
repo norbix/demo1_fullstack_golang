@@ -44,11 +44,10 @@ func createAccount(this js.Value, args []js.Value) interface{} {
 	return nil
 }
 
-// RetrieveAccounts sends a POST request to retrieve accounts
 func retrieveAccounts(this js.Value, args []js.Value) interface{} {
 	pagination := map[string]interface{}{
-		"page": args[0].Int(),
-		"size": args[1].Int(),
+		"page":    args[0].Int(),
+		"perPage": args[1].Int(), // Use "perPage" instead of "size"
 	}
 
 	data, _ := json.Marshal(pagination)
@@ -58,9 +57,61 @@ func retrieveAccounts(this js.Value, args []js.Value) interface{} {
 			js.Global().Get("alert").Invoke("Failed to retrieve accounts: " + err.Error())
 			return
 		}
-		js.Global().Get("alert").Invoke("Accounts retrieved: " + resp)
+
+		// Parse the response JSON
+		var result map[string]interface{}
+		if err := json.Unmarshal([]byte(resp), &result); err != nil {
+			js.Global().Get("alert").Invoke("Failed to parse accounts response: " + err.Error())
+			return
+		}
+
+		// Get the "revisions" array from the response
+		revisions, ok := result["revisions"].([]interface{})
+		if !ok {
+			js.Global().Get("alert").Invoke("Invalid accounts response format")
+			return
+		}
+
+		// Access the table's tbody element in the DOM
+		document := js.Global().Get("document")
+		tableBody := document.Call("querySelector", "#accounts-table tbody")
+		tableBody.Set("innerHTML", "") // Clear existing rows
+
+		// Populate the table with the retrieved accounts
+		for _, rev := range revisions {
+			revision := rev.(map[string]interface{})
+			documentData := revision["document"].(map[string]interface{})
+
+			row := document.Call("createElement", "tr")
+			row.Set("innerHTML", `
+				<td>`+getString(documentData["_id"])+`</td>
+				<td>`+getString(documentData["account_name"])+`</td>
+				<td>`+getString(documentData["account_number"])+`</td>
+				<td>`+getString(documentData["address"])+`</td>
+				<td>`+getFloat(documentData["amount"])+`</td>
+				<td>`+getString(documentData["iban"])+`</td>
+				<td>`+getString(documentData["type"])+`</td>
+			`)
+			tableBody.Call("appendChild", row)
+		}
 	}()
 	return nil
+}
+
+// Helper function to get string value from interface{}
+func getString(value interface{}) string {
+	if value == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", value)
+}
+
+// Helper function to get float value from interface{}
+func getFloat(value interface{}) string {
+	if value == nil {
+		return "0"
+	}
+	return fmt.Sprintf("%.2f", value)
 }
 
 // HealthCheck sends a GET request to check backend health
@@ -76,8 +127,9 @@ func healthCheck(this js.Value, args []js.Value) interface{} {
 	return nil
 }
 
-// Helper function to make HTTP requests
 func httpRequest(method, url, body string) (string, error) {
+	fmt.Printf("Making %s request to %s with body: %s\n", method, url, body)
+
 	fetch := js.Global().Get("fetch")
 	options := map[string]interface{}{
 		"method": method,
@@ -89,23 +141,24 @@ func httpRequest(method, url, body string) (string, error) {
 		options["body"] = body
 	}
 
-	// Create a JavaScript Promise and handle it
 	promise := fetch.Invoke(url, options)
 	resultChan := make(chan js.Value)
 	errChan := make(chan error)
 
 	promise.Call("then", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		response := args[0]
-		// Extract the text response from the fetch response
 		response.Call("text").Call("then", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			fmt.Printf("Response received: %s\n", args[0].String())
 			resultChan <- args[0]
 			return nil
 		})).Call("catch", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+			fmt.Printf("Error extracting response text: %s\n", args[0].String())
 			errChan <- fmt.Errorf(args[0].String())
 			return nil
 		}))
 		return nil
 	})).Call("catch", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		fmt.Printf("Fetch request failed: %s\n", args[0].String())
 		errChan <- fmt.Errorf(args[0].String())
 		return nil
 	}))
