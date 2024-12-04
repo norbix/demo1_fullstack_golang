@@ -9,7 +9,7 @@ COPY scripts/build.sh /app/scripts/build.sh
 RUN chmod +x /app/scripts/build.sh
 
 # Copy the Go module files to leverage Docker caching
-COPY ./frontend/go.mod ./frontend/go.sum /app/frontend/
+COPY ./frontend/go.mod /app/frontend/
 WORKDIR /app/frontend
 RUN go mod download
 
@@ -29,7 +29,7 @@ WORKDIR /usr/share/nginx/html
 COPY --from=builder /app/frontend/build/ /usr/share/nginx/html
 
 # Copy the nginx configuration if needed (optional)
-# COPY docker/frontend/nginx.conf /etc/nginx/nginx.conf
+COPY docker/frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Expose the frontend port
 EXPOSE 3000
