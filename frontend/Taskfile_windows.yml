@@ -1,0 +1,23 @@
+version: '3'
+
+# Global variables
+vars:
+  MAIN_FILE: "cmd/ui/main.go"
+  BUILD_DIR: "./bin"
+  ASSETS_DIR: "./assets"
+
+tasks:
+  compile:
+    desc: "Build the frontend WebAssembly binary on Windows"
+    cmds:
+      - echo "Building frontend WebAssembly (Windows)..."
+      - mkdir {{.BUILD_DIR}} 2>nul || echo "Directory already exists"
+      - GOOS=js GOARCH=wasm go build -o {{.BUILD_DIR}}/main.wasm {{.MAIN_FILE}}
+      - xcopy /e /i {{.ASSETS_DIR}} {{.BUILD_DIR}}
+      - echo "Frontend build complete! Files located in {{.BUILD_DIR}}"
+
+  clean:
+    desc: "Clean up generated frontend files on Windows"
+    cmds:
+      - echo "Cleaning up frontend build directory (Windows)..."
+      - rmdir /s /q {{.BUILD_DIR}} 2>nul || echo "No directory to remove"
