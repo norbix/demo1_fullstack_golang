@@ -52,17 +52,17 @@ Demo application containing fullstack solution in pure Golang.
 
 1. Clone the repository:
 
-```bash
-git clone
-```
+    ```bash
+    git clone
+    ```
 
-2. Install dependencies:
+1. Install dependencies:
 
-```bash
-go mod download
-```
+    ```bash
+    go mod download
+    ```
 
-3. Start the backend service:
+1. Start the backend service:
 
     ```text
     go run ./backend/cmd/api
@@ -92,6 +92,14 @@ go mod download
     | `/swagger/`             | GET        | Access Swagger documentation                  | None                                                                                                          | Swagger UI                            |
     | `/accounts`             | PUT        | Create a new account                          | ```json { "id": "string", "name": "string", "email": "string" } ```                                           | `200 OK`: Account created            |
     | `/accounts/retrieve`    | POST       | Retrieve accounts with pagination             | ```json { "page": 1, "perPage": 100 } ```                                                                     | `200 OK`: List of accounts            |
+
+1. Start the frontend service:
+
+    ```text
+    go run ./frontend/cmd/ui
+    ```
+    
+    The frontend service will start on `http://localhost:3000`.
 
 ## Manual E2E Testing
 
