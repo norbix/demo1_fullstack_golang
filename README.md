@@ -24,9 +24,6 @@ Demo application containing fullstack solution in pure Golang.
 │   ├── /cmd
 │   │   └── /ui
 │   │       └── main.go        # Entry point for WebAssembly-based frontend
-│   ├── /internal              # Frontend-specific logic
-│   │   └── /components        # UI components
-│   ├── /pkg                   # Shared reusable frontend libraries
 │   ├── /templates             # HTML templates if using SSR
 │   └── go.mod
 │
