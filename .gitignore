@@ -28,6 +28,7 @@ hack/
 
 # Ignore everything in .idea/ by default
 .idea/*
+*.iml
 
 # Allow project-specific files
 !.idea/modules.xml
