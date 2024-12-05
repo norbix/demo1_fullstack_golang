@@ -35,7 +35,6 @@ Demo application containing fullstack solution in pure Golang.
 │   ├── /frontend
 │   │   └── Dockerfile
 │   └── docker-compose.yml
-├── /tests                     # End-to-end or integration tests
 └── README.md
 ```
 
